@@ -65,7 +65,8 @@ class Profile extends React.Component {
         hash,
         content: hexToUtf8(input),
         date: new Date(parseInt(timeStamp) * 1000).toLocaleString(),
-      }));
+      }))
+      .reverse();
 
     this.setState({ feed });
   }
