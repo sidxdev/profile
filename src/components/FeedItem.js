@@ -24,13 +24,14 @@ class FeedItem extends React.Component {
       lazy,
       type,
       lazyText: "loading...",
-      iconColor: "",
+      iconColor: "grey",
     };
   }
 
   async componentDidMount() {
     if (this.state.lazy) {
       switch (this.state.type) {
+        default:
         case "https":
           let httpResponse = await axios.get(this.props.content);
           let httpContentType = httpResponse.headers["content-type"];
@@ -66,7 +67,15 @@ class FeedItem extends React.Component {
           <Card.Content description={this.props.content} />
         )}
         <Card.Content extra>
-          {this.state.lazy && <Label attached="top right" color={this.state.iconColor} size="tiny">{this.state.type} </Label>}
+          {this.state.lazy && (
+            <Label
+              attached="top right"
+              color={this.state.iconColor}
+              size="tiny"
+            >
+              {this.state.type}{" "}
+            </Label>
+          )}
           {this.props.date}
         </Card.Content>
       </Card>

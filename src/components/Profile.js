@@ -29,6 +29,8 @@ class Profile extends React.Component {
       id,
       profileButtonDisable: true,
       feed: [],
+      theme: "light",
+      connect: false,
     };
   }
 
@@ -73,7 +75,7 @@ class Profile extends React.Component {
 
   render() {
     return (
-      <Container>
+      <Container style={{ marginTop: "2.5em" }}>
         <Divider hidden />
         <Input
           value={this.state.id}
