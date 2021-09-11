@@ -60,13 +60,23 @@ class FeedItem extends React.Component {
 
   render() {
     return (
-      <Card fluid>
-        {this.state.lazy ? (
-          <Card.Content description={this.state.lazyText} />
-        ) : (
-          <Card.Content description={this.props.content} />
-        )}
-        <Card.Content extra>
+      <Card
+        fluid
+        raised
+        style={{
+          background: this.props.theme === "dark" ? "black" : "white",
+        }}
+      >
+        <Card.Content>
+          <Card.Description
+            content={this.state.lazy ? this.state.lazyText : this.props.content}
+            style={{ color: this.props.theme === "dark" ? "white" : "black" }}
+          />
+        </Card.Content>
+        <Card.Content
+          extra
+          style={{ color: this.props.theme === "dark" ? "white" : "black" }}
+        >
           {this.state.lazy && (
             <Label
               attached="top right"

@@ -6,29 +6,52 @@ class App extends React.Component {
   constructor() {
     super();
 
+    let disableConnect = typeof window.ethereum === "undefined";
+
     this.state = {
-      theme: "light",
+      theme: localStorage.getItem("theme") || "light",
       connect: false,
+      disableConnect,
+      id: "",
     };
+
+    this.profile = React.createRef();
+  }
+
+  componentDidMount() {
+    this.setTheme(this.state.theme);
   }
 
   onClickToggleTheme() {
     if (this.state.theme === "dark") {
-      this.setState({ theme: "light" });
-      document.body.classList.remove("dark")
-      document.body.classList.add("light")
+      this.setTheme("light");
     } else {
-      this.setState({ theme: "dark" });
-      document.body.classList.remove("light")
-      document.body.classList.add("dark")
+      this.setTheme("dark");
     }
+  }
+
+  setTheme(theme) {
+    this.setState({ theme });
+    localStorage.setItem("theme", theme);
+    document.body.classList.remove("dark");
+    document.body.classList.remove("light");
+    document.body.classList.add(theme);
   }
 
   onClickConnect() {
     if (this.state.connect) {
-      this.setState({ connect: false });
+      this.setState({ connect: false, id: "" });
     } else {
-      this.setState({ connect: true });
+      window.ethereum
+        .request({ method: "eth_requestAccounts" })
+        .then((accounts) => {
+          let id = accounts[0];
+          this.setState({ connect: true, id });
+          this.profile.current.loadData(id);
+        })
+        .catch((_) => {
+          this.setState({ connect: false, id: "" });
+        });
     }
   }
 
@@ -41,19 +64,45 @@ class App extends React.Component {
           borderless
           inverted={this.state.theme === "dark"}
         >
-          <Menu.Item header content="Profile" />
+          <Menu.Item
+            header
+            content={
+              this.state.id
+                ? `Profile ${this.state.id.substring(
+                    0,
+                    6
+                  )}...${this.state.id.slice(-4)}`
+                : "Profile"
+            }
+          />
           <Menu.Item
             position="right"
             icon={this.state.theme === "dark" ? "moon" : "sun"}
             onClick={this.onClickToggleTheme.bind(this)}
           />
           <Menu.Item
-            name={this.state.connect ? "Disconnect" : "Connect"}
-            icon="power"
-            onClick={this.onClickConnect.bind(this)}
+            name={
+              this.state.disableConnect
+                ? "Install Metamask"
+                : this.state.connect
+                ? "Disconnect"
+                : "Connect"
+            }
+            icon={this.state.disableConnect ? "warning" : "power"}
+            onClick={
+              this.state.disableConnect
+                ? () => {
+                    window.open("https://metamask.io", "_blank");
+                  }
+                : this.onClickConnect.bind(this)
+            }
           />
         </Menu>
-        <Profile theme={this.state.theme} />
+        <Profile
+          ref={this.profile}
+          theme={this.state.theme}
+          id={this.state.id}
+        />
       </div>
     );
   }
