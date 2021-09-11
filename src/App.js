@@ -2,6 +2,8 @@ import React from "react";
 import { Button, Input, Menu, Message, Modal } from "semantic-ui-react";
 import Profile from "./components/Profile";
 import { stringToHex } from "./lib/HexStringUtil";
+const { create } = require("ipfs-http-client");
+const ipfs = create("http://localhost:5001");
 
 class App extends React.Component {
   constructor() {
@@ -65,7 +67,15 @@ class App extends React.Component {
 
   async onClickPostToMetamask() {
     let post = this.state.postMessage;
-    let hex = stringToHex(post);
+    let hex;
+
+    // Put long posts on ipfs
+    if (post.length > 60) {
+      const { cid } = await ipfs.add(post, { pin: true });
+      hex = stringToHex(`ipfs://${cid.toString()}`);
+    } else {
+      hex = stringToHex(post);
+    }
 
     window.ethereum
       .request({
