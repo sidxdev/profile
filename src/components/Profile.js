@@ -2,15 +2,8 @@ import React from "react";
 import { Card, Container, Divider } from "semantic-ui-react";
 import axios from "axios";
 import FeedItem from "./FeedItem";
+import { hexToString } from "../lib/HexStringUtil";
 
-function hexToUtf8(hex) {
-  return decodeURIComponent(
-    hex
-      .replace(/\s+/g, "")
-      .replace(/[0-9a-f]{2}/g, "%$&")
-      .substring(2)
-  );
-}
 
 class Profile extends React.Component {
   constructor(props) {
@@ -39,7 +32,7 @@ class Profile extends React.Component {
       .filter((v, i, a) => a.findIndex((t) => t.hash === v.hash) === i)
       .map(({ hash, input, timeStamp }) => ({
         hash,
-        content: hexToUtf8(input),
+        content: hexToString(input),
         date: new Date(parseInt(timeStamp) * 1000).toString().substring(0,24),
       }))
       .reverse();

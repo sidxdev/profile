@@ -1,6 +1,7 @@
 import React from "react";
-import { Menu } from "semantic-ui-react";
+import { Button, Input, Menu, Message, Modal } from "semantic-ui-react";
 import Profile from "./components/Profile";
+import { stringToHex } from "./lib/HexStringUtil";
 
 class App extends React.Component {
   constructor() {
@@ -13,6 +14,9 @@ class App extends React.Component {
       connect: false,
       disableConnect,
       id: "",
+      addModalOpen: false,
+      postMessage: "",
+      disableRefresh: false,
     };
 
     this.profile = React.createRef();
@@ -55,6 +59,30 @@ class App extends React.Component {
     }
   }
 
+  onClickAdd() {
+    this.setState({ addModalOpen: true, postMessage: "" });
+  }
+
+  async onClickPostToMetamask() {
+    let post = this.state.postMessage;
+    let hex = stringToHex(post);
+
+    window.ethereum
+      .request({
+        method: "eth_sendTransaction",
+        params: [
+          {
+            to: window.ethereum.selectedAddress,
+            from: window.ethereum.selectedAddress,
+            data: `0x${hex}`,
+          },
+        ],
+      })
+      .then((_) => {})
+      .catch((_) => {})
+      .finally((_) => this.setState({ addModalOpen: false, postMessage: "" }));
+  }
+
   render() {
     return (
       <div className={this.state.theme}>
@@ -75,6 +103,21 @@ class App extends React.Component {
                 : "Profile"
             }
           />
+          {this.state.id && (
+            <Menu.Item
+              icon="refresh"
+              disabled={this.state.disableRefresh}
+              onClick={() => {
+                this.profile.current.loadData(this.state.id);
+                this.setState({ disableRefresh: true });
+                setTimeout(
+                  () => this.setState({ disableRefresh: false }),
+                  2000
+                );
+              }}
+            />
+          )}
+
           <Menu.Item
             position="right"
             icon={this.state.theme === "dark" ? "moon" : "sun"}
@@ -103,6 +146,64 @@ class App extends React.Component {
           theme={this.state.theme}
           id={this.state.id}
         />
+        <Button
+          circular
+          icon="add"
+          size="big"
+          onClick={this.onClickAdd.bind(this)}
+          style={{
+            display: this.state.connect ? "block" : "none",
+            position: "fixed",
+            margin: "2em",
+            bottom: "0px",
+            right: "0px",
+            zIndex: 6,
+          }}
+        />
+        <Modal open={this.state.addModalOpen}>
+          <Modal.Header>Post a new Message</Modal.Header>
+          <Modal.Content>
+            <Modal.Description>
+              <Input
+                fluid
+                placeholder="Enter your messsage"
+                onChange={(e, { value }) =>
+                  this.setState({ postMessage: value })
+                }
+              />
+              <Message warning>
+                <p>
+                  Metamask will prompt you for transaction confirmation. Verify
+                  transaction amount is 0 and to address is your own. The data
+                  input will be a hex encode of your post.
+                </p>
+                <p>
+                  After confirming in Metamask, the transaction may take some
+                  time to finalize on the blockchain based on network
+                  conditions. You can refresh from the header icon when Metamask
+                  notifies you of successful posting.
+                </p>
+              </Message>
+            </Modal.Description>
+          </Modal.Content>
+          <Modal.Actions>
+            <Button
+              negative
+              content="Cancel"
+              onClick={() =>
+                this.setState({ addModalOpen: false, postMessage: "" })
+              }
+            />
+            <Button
+              content="Post"
+              labelPosition="right"
+              icon="checkmark"
+              positive
+              disabled={this.state.postMessage ? false : true}
+              onClick={this.onClickPostToMetamask.bind(this)}
+            />
+          </Modal.Actions>
+        </Modal>
       </div>
     );
   }
