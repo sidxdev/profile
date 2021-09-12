@@ -110,14 +110,7 @@ class App extends React.Component {
         >
           <Menu.Item
             header
-            content={
-              this.state.id
-                ? `Profile ${this.state.id.substring(
-                    0,
-                    6
-                  )}...${this.state.id.slice(-4)}`
-                : "Profile"
-            }
+            content="Profile"
           />
           {this.state.id && (
             <Menu.Item

@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, Container, Divider } from "semantic-ui-react";
+import { Card, Container, Divider, Header } from "semantic-ui-react";
 import axios from "axios";
 import FeedItem from "./FeedItem";
 import { hexToString } from "../lib/HexStringUtil";
@@ -36,7 +36,7 @@ class Profile extends React.Component {
       case "137":
         host = "https://api.polygonscan.com";
         break;
-        
+
       default:
         return;
     }
@@ -67,6 +67,18 @@ class Profile extends React.Component {
   render() {
     return (
       <Container style={{ marginTop: "2.5em" }}>
+        <Divider hidden />
+        {this.props.id && (
+          <Header
+            style={{ color: this.props.theme === "dark" ? "white" : "black" }}
+            content={`Address ${this.props.id.substring(
+              0,
+              6
+            )}...${this.props.id.slice(-4)} Chain ${
+              window.ethereum.networkVersion
+            }`}
+          />
+        )}
         <Divider hidden />
         <Card.Group>
           {this.props.id &&

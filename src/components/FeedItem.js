@@ -79,7 +79,7 @@ class FeedItem extends React.Component {
         >
           {this.state.lazy && (
             <Label
-              attached="top right"
+              attached="bottom right"
               color={this.state.iconColor}
               size="tiny"
             >
