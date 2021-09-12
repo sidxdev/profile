@@ -65,7 +65,8 @@ class Profile extends React.Component {
 
   render() {
     return (
-      <Container style={{ marginTop: "2.5em" }}>
+      <Container>
+        <Divider hidden />
         <Divider hidden />
         {this.props.id && (
           <Header
