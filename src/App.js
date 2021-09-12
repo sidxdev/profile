@@ -11,12 +11,14 @@ class App extends React.Component {
 
     let disableConnect = typeof window.ethereum === "undefined";
     const id = localStorage.getItem("id") || "";
+    const chain = localStorage.getItem("chain") || null;
 
     this.state = {
       theme: localStorage.getItem("theme") || "light",
       connect: id ? true : false,
       disableConnect,
       id,
+      chain,
       addModalOpen: false,
       postMessage: "",
       disableRefresh: false,
@@ -54,15 +56,20 @@ class App extends React.Component {
       window.ethereum
         .request({ method: "eth_requestAccounts" })
         .then((accounts) => {
+          let chain = window.ethereum.chainId;
+          if (chain.startsWith("0x")) {
+            chain = parseInt(chain);
+          }
           let id = accounts[0];
           localStorage.setItem("id", id);
-          this.setState({ connect: true, id });
+          localStorage.setItem("chain", chain);
+          this.setState({ connect: true, id, chain });
           this.profile.current.loadData(id);
         })
         .catch((_) => {
           this.setState({ connect: false, id: "" });
-          localStorage.clear("feed");
-          localStorage.clear("id");
+          localStorage.removeItem("feed");
+          localStorage.removeItem("id");
         });
     }
   }
@@ -88,8 +95,8 @@ class App extends React.Component {
         method: "eth_sendTransaction",
         params: [
           {
-            to: window.ethereum.selectedAddress,
-            from: window.ethereum.selectedAddress,
+            to: this.state.id,
+            from: this.state.id,
             data: `0x${hex}`,
           },
         ],
@@ -108,10 +115,7 @@ class App extends React.Component {
           borderless
           inverted={this.state.theme === "dark"}
         >
-          <Menu.Item
-            header
-            content="Profile"
-          />
+          <Menu.Item header content="Profile" />
           {this.state.id && (
             <Menu.Item
               icon="refresh"
@@ -154,6 +158,7 @@ class App extends React.Component {
           ref={this.profile}
           theme={this.state.theme}
           id={this.state.id}
+          chain={this.state.chain}
         />
         <Button
           circular

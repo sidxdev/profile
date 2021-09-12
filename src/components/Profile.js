@@ -23,17 +23,16 @@ class Profile extends React.Component {
   async loadData(id) {
     if (!id) return;
 
-    let network = window.ethereum.networkVersion;
     let host;
 
-    switch (network) {
+    switch (parseInt(this.props.chain)) {
       // Polygon Mumbai Testnet
-      case "80001":
+      case 80001:
         host = "https://api-testnet.polygonscan.com";
         break;
 
       // Polygon Mainnet
-      case "137":
+      case 137:
         host = "https://api.polygonscan.com";
         break;
 
@@ -74,9 +73,7 @@ class Profile extends React.Component {
             content={`Address ${this.props.id.substring(
               0,
               6
-            )}...${this.props.id.slice(-4)} Chain ${
-              window.ethereum.networkVersion
-            }`}
+            )}...${this.props.id.slice(-4)} Chain ${this.props.chain}`}
           />
         )}
         <Divider hidden />
