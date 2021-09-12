@@ -22,6 +22,7 @@ class App extends React.Component {
       addModalOpen: false,
       postMessage: "",
       disableRefresh: false,
+      ipfs: false,
     };
 
     this.profile = React.createRef();
@@ -29,6 +30,10 @@ class App extends React.Component {
 
   componentDidMount() {
     this.setTheme(this.state.theme);
+
+    ipfs.isOnline().then((_) => {
+      this.setState({ ipfs: true });
+    });
   }
 
   onClickToggleTheme() {
@@ -176,23 +181,30 @@ class App extends React.Component {
           <Modal.Content>
             <Modal.Description>
               <Input
+                maxLength={this.state.ipfs ? 500 : 60}
                 fluid
                 placeholder="Enter your messsage"
                 onChange={(e, { value }) =>
                   this.setState({ postMessage: value })
                 }
               />
+              {!this.state.ipfs && (
+                <Message
+                  error
+                  content="IPFS is not enabled. Posts are limited to 60 characters."
+                />
+              )}
               <Message warning>
                 <p>
-                  Your wallet will prompt you for transaction confirmation. Verify
-                  transaction amount is 0 and to address is your own. The data
-                  input will be a hex encode of your post.
+                  Your wallet will prompt you for transaction confirmation.
+                  Verify transaction amount is 0 and to address is your own. The
+                  data input will be a hex encode of your post.
                 </p>
                 <p>
                   After confirming in your wallet, the transaction may take some
                   time to finalize on the blockchain based on network
-                  conditions. You can refresh from the header icon when your wallet
-                  notifies you of successful posting.
+                  conditions. You can refresh from the header icon when your
+                  wallet notifies you of successful posting.
                 </p>
               </Message>
             </Modal.Description>
