@@ -80,7 +80,7 @@ class App extends React.Component {
     let hex;
 
     // Put long posts on ipfs
-    if (post.length > 60) {
+    if (post.length > 60 && !post.startsWith("https://")) {
       const { cid } = await ipfs.add(post, { pin: true });
       hex = stringToHex(`ipfs://${cid.toString()}`);
     } else {
@@ -184,14 +184,14 @@ class App extends React.Component {
               />
               <Message warning>
                 <p>
-                  Metamask will prompt you for transaction confirmation. Verify
+                  Your wallet will prompt you for transaction confirmation. Verify
                   transaction amount is 0 and to address is your own. The data
                   input will be a hex encode of your post.
                 </p>
                 <p>
-                  After confirming in Metamask, the transaction may take some
+                  After confirming in your wallet, the transaction may take some
                   time to finalize on the blockchain based on network
-                  conditions. You can refresh from the header icon when Metamask
+                  conditions. You can refresh from the header icon when your wallet
                   notifies you of successful posting.
                 </p>
               </Message>
