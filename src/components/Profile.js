@@ -23,8 +23,26 @@ class Profile extends React.Component {
   async loadData(id) {
     if (!id) return;
 
+    let network = window.ethereum.networkVersion;
+    let host;
+
+    switch (network) {
+      // Polygon Mumbai Testnet
+      case "80001":
+        host = "https://api-testnet.polygonscan.com";
+        break;
+
+      // Polygon Mainnet
+      case "137":
+        host = "https://api.polygonscan.com";
+        break;
+        
+      default:
+        return;
+    }
+
     let response = await axios.get(
-      `https://api-testnet.polygonscan.com/api?module=account&action=txlist&address=${id}&startblock=1&endblock=99999999&sort=asc`
+      `${host}/api?module=account&action=txlist&address=${id}&startblock=1&endblock=99999999&sort=asc`
     );
 
     let data = response.data;
