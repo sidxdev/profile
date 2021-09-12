@@ -4,14 +4,19 @@ import axios from "axios";
 import FeedItem from "./FeedItem";
 import { hexToString } from "../lib/HexStringUtil";
 
-
 class Profile extends React.Component {
   constructor(props) {
     super(props);
 
+    let feed = localStorage.getItem("feed");
+    if (feed) {
+      feed = JSON.parse(feed);
+    } else {
+      feed = [];
+    }
+
     this.state = {
-      profileButtonDisable: true,
-      feed: [],
+      feed,
     };
   }
 
@@ -33,11 +38,12 @@ class Profile extends React.Component {
       .map(({ hash, input, timeStamp }) => ({
         hash,
         content: hexToString(input),
-        date: new Date(parseInt(timeStamp) * 1000).toString().substring(0,24),
+        date: new Date(parseInt(timeStamp) * 1000).toString().substring(0, 24),
       }))
       .reverse();
 
     this.setState({ feed });
+    localStorage.setItem("feed", JSON.stringify(feed));
   }
 
   render() {

@@ -10,12 +10,13 @@ class App extends React.Component {
     super();
 
     let disableConnect = typeof window.ethereum === "undefined";
+    const id = localStorage.getItem("id") || "";
 
     this.state = {
       theme: localStorage.getItem("theme") || "light",
-      connect: false,
+      connect: id ? true : false,
       disableConnect,
-      id: "",
+      id,
       addModalOpen: false,
       postMessage: "",
       disableRefresh: false,
@@ -47,16 +48,21 @@ class App extends React.Component {
   onClickConnect() {
     if (this.state.connect) {
       this.setState({ connect: false, id: "" });
+      localStorage.removeItem("feed");
+      localStorage.removeItem("id");
     } else {
       window.ethereum
         .request({ method: "eth_requestAccounts" })
         .then((accounts) => {
           let id = accounts[0];
+          localStorage.setItem("id", id);
           this.setState({ connect: true, id });
           this.profile.current.loadData(id);
         })
         .catch((_) => {
           this.setState({ connect: false, id: "" });
+          localStorage.clear("feed");
+          localStorage.clear("id");
         });
     }
   }
