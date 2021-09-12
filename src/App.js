@@ -56,10 +56,7 @@ class App extends React.Component {
       window.ethereum
         .request({ method: "eth_requestAccounts" })
         .then((accounts) => {
-          let chain = window.ethereum.chainId;
-          if (chain.startsWith("0x")) {
-            chain = parseInt(chain);
-          }
+          let chain = parseInt(window.ethereum.chainId);
           let id = accounts[0];
           localStorage.setItem("id", id);
           localStorage.setItem("chain", chain);
