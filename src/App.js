@@ -3,7 +3,6 @@ import { Button, Input, Menu, Message, Modal } from "semantic-ui-react";
 import Profile from "./components/Profile";
 import { stringToHex } from "./lib/HexStringUtil";
 const { create } = require("ipfs-http-client");
-const ipfs = create("http://localhost:5001");
 
 class App extends React.Component {
   constructor() {
@@ -12,14 +11,18 @@ class App extends React.Component {
     let disableConnect = typeof window.ethereum === "undefined";
     const id = localStorage.getItem("id") || "";
     const chain = localStorage.getItem("chain") || null;
+    const ipfsHost = localStorage.getItem("ipfs") || "http://localhost:5001";
+    this.ipfs = create(ipfsHost);
 
     this.state = {
+      ipfsHost,
       theme: localStorage.getItem("theme") || "light",
       connect: id ? true : false,
       disableConnect,
       id,
       chain,
       addModalOpen: false,
+      ipfsModalOpen: false,
       postMessage: "",
       disableRefresh: false,
       ipfs: false,
@@ -31,7 +34,7 @@ class App extends React.Component {
   componentDidMount() {
     this.setTheme(this.state.theme);
 
-    ipfs.isOnline().then((_) => {
+    this.ipfs.isOnline().then((_) => {
       this.setState({ ipfs: true });
     });
   }
@@ -86,7 +89,7 @@ class App extends React.Component {
 
     // Put long posts on ipfs
     if (post.length > 60 && !post.startsWith("https://")) {
-      const { cid } = await ipfs.add(post, { pin: true });
+      const { cid } = await this.ipfs.add(post, { pin: true });
       hex = stringToHex(`ipfs://${cid.toString()}`);
     } else {
       hex = stringToHex(post);
@@ -135,6 +138,10 @@ class App extends React.Component {
 
           <Menu.Item
             position="right"
+            icon="cubes"
+            onClick={() => this.setState({ ipfsModalOpen: true })}
+          />
+          <Menu.Item
             icon={this.state.theme === "dark" ? "moon" : "sun"}
             onClick={this.onClickToggleTheme.bind(this)}
           />
@@ -191,7 +198,7 @@ class App extends React.Component {
               {!this.state.ipfs && (
                 <Message
                   error
-                  content="IPFS is not enabled. Posts are limited to 60 characters."
+                  content="Cannot connect to IPFS Node. Posts are limited to 60 characters."
                 />
               )}
               <Message warning>
@@ -224,6 +231,44 @@ class App extends React.Component {
               positive
               disabled={this.state.postMessage ? false : true}
               onClick={this.onClickPostToMetamask.bind(this)}
+            />
+          </Modal.Actions>
+        </Modal>
+        <Modal open={this.state.ipfsModalOpen}>
+          <Modal.Header>Set IPFS Node</Modal.Header>
+          <Modal.Content>
+            <Modal.Description>
+              <Input
+                fluid
+                value={this.state.ipfsHost}
+                onChange={(e, { value }) =>
+                  this.setState({ ipfsHost: value })
+                }
+              />
+            </Modal.Description>
+          </Modal.Content>
+          <Modal.Actions>
+            <Button
+              negative
+              content="Cancel"
+              onClick={() => this.setState({ ipfsModalOpen: false })}
+            />
+            <Button
+              disabled={
+                this.state.ipfsHost &&
+                (this.state.ipfsHost.startsWith("http://") ||
+                  this.state.ipfsHost.startsWith("https://"))
+                  ? false
+                  : true
+              }
+              content="Save"
+              labelPosition="right"
+              icon="checkmark"
+              positive
+              onClick={() => {
+                localStorage.setItem("ipfs", this.state.ipfsHost);
+                window.location.reload();
+              }}
             />
           </Modal.Actions>
         </Modal>
