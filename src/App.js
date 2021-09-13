@@ -1,4 +1,5 @@
 import React from "react";
+import { createRef } from "react";
 import { Button, Input, Menu, Message, Modal } from "semantic-ui-react";
 import Profile from "./components/Profile";
 import { stringToHex } from "./lib/HexStringUtil";
@@ -13,6 +14,7 @@ class App extends React.Component {
     const chain = localStorage.getItem("chain") || null;
     const ipfsHost = localStorage.getItem("ipfs") || "http://localhost:5001";
     this.ipfs = create(ipfsHost);
+    this.fileUploadRef = createRef();
 
     this.state = {
       ipfsHost,
@@ -26,6 +28,7 @@ class App extends React.Component {
       postMessage: "",
       disableRefresh: false,
       ipfs: false,
+      fileUploaded: null,
     };
 
     this.profile = React.createRef();
@@ -80,15 +83,29 @@ class App extends React.Component {
   }
 
   onClickAdd() {
-    this.setState({ addModalOpen: true, postMessage: "" });
+    this.setState({ addModalOpen: true, postMessage: "", fileUploaded: null });
   }
 
   async onClickPostToMetamask() {
     let post = this.state.postMessage;
     let hex;
 
+    // Image upload
+    if (this.state.fileUploaded) {
+      const { cid: imageCID } = await this.ipfs.add(this.state.fileUploaded, {
+        pin: true,
+      });
+      post = JSON.stringify({
+        text: post,
+        image: imageCID.toString(),
+      });
+    }
+
     // Put long posts on ipfs
-    if (post.length > 60 && !post.startsWith("https://")) {
+    if (
+      post instanceof File ||
+      (post.length > 60 && !post.startsWith("https://"))
+    ) {
       const { cid } = await this.ipfs.add(post, { pin: true });
       hex = stringToHex(`ipfs://${cid.toString()}`);
     } else {
@@ -108,7 +125,13 @@ class App extends React.Component {
       })
       .then((_) => {})
       .catch((_) => {})
-      .finally((_) => this.setState({ addModalOpen: false, postMessage: "" }));
+      .finally((_) =>
+        this.setState({
+          addModalOpen: false,
+          postMessage: "",
+          fileUploaded: null,
+        })
+      );
   }
 
   render() {
@@ -188,14 +211,42 @@ class App extends React.Component {
           <Modal.Content>
             <Modal.Description>
               <Input
-                maxLength={this.state.ipfs ? 500 : 60}
+                maxLength={this.state.ipfs ? 1000 : 60}
                 fluid
                 placeholder="Enter your messsage"
                 onChange={(e, { value }) =>
                   this.setState({ postMessage: value })
                 }
               />
-              {!this.state.ipfs && (
+              {this.state.ipfs ? (
+                <div style={{ marginTop: "1em" }}>
+                  <Button
+                    content="Upload Image"
+                    labelPosition="left"
+                    icon="file"
+                    onClick={() => this.fileUploadRef.current.click()}
+                  />
+                  <input
+                    ref={this.fileUploadRef}
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={({ target }) =>
+                      this.setState({ fileUploaded: target.files[0] })
+                    }
+                  />
+                  {this.state.fileUploaded && (
+                    <Button
+                      negative
+                      icon="remove"
+                      content={this.state.fileUploaded.name}
+                      onClick={() => {
+                        this.setState({ fileUploaded: null });
+                      }}
+                    />
+                  )}
+                </div>
+              ) : (
                 <Message
                   error
                   content="Cannot connect to IPFS Node. Posts are limited to 60 characters."
@@ -221,7 +272,11 @@ class App extends React.Component {
               negative
               content="Cancel"
               onClick={() =>
-                this.setState({ addModalOpen: false, postMessage: "" })
+                this.setState({
+                  addModalOpen: false,
+                  postMessage: "",
+                  fileUploaded: null,
+                })
               }
             />
             <Button
@@ -241,9 +296,7 @@ class App extends React.Component {
               <Input
                 fluid
                 value={this.state.ipfsHost}
-                onChange={(e, { value }) =>
-                  this.setState({ ipfsHost: value })
-                }
+                onChange={(e, { value }) => this.setState({ ipfsHost: value })}
               />
             </Modal.Description>
           </Modal.Content>

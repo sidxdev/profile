@@ -3,7 +3,6 @@ import { Card, Image, Label } from "semantic-ui-react";
 import axios from "axios";
 import HTMLReactParser from "html-react-parser";
 
-
 const IPFS_GATEWAY = "https://ipfs.io/ipfs/";
 
 class FeedItem extends React.Component {
@@ -33,7 +32,10 @@ class FeedItem extends React.Component {
   formatHTMLText(content) {
     // enable links
     const linksRegex = /(https?:\/\/[^\s]+)/gm;
-    content = content.replace(linksRegex, `<a href="$1" target="_blank">$1</a>`);
+    content = content.replace(
+      linksRegex,
+      `<a href="$1" target="_blank">$1</a>`
+    );
 
     return <div>{HTMLReactParser(content)}</div>;
   }
@@ -48,7 +50,16 @@ class FeedItem extends React.Component {
       });
     } else if (contentType.search("image") >= 0) {
       this.setState({
+        lazyText: "",
         lazyImage: url,
+        iconColor: color,
+      });
+    } else if (contentType.search("application/json") >= 0) {
+      let json = response.data;
+
+      this.setState({
+        lazyText: json.text,
+        lazyImage: json.image ? `${IPFS_GATEWAY}${json.image}` : null,
         iconColor: color,
       });
     } else {
@@ -86,18 +97,17 @@ class FeedItem extends React.Component {
           background: this.props.theme === "dark" ? "black" : "white",
         }}
       >
+        {this.state.lazyImage && (
+          <Image fluid wrapped src={this.state.lazyImage} />
+        )}
         <Card.Content>
-          {this.state.lazyImage ? (
-            <Image fluid wrapped src={this.state.lazyImage} />
-          ) : (
-            <Card.Description
-              style={{ color: this.props.theme === "dark" ? "white" : "black" }}
-            >
-              {this.formatHTMLText(
-                this.state.lazy ? this.state.lazyText : this.props.content
-              )}
-            </Card.Description>
-          )}
+          <Card.Description
+            style={{ color: this.props.theme === "dark" ? "white" : "black" }}
+          >
+            {this.formatHTMLText(
+              this.state.lazy ? this.state.lazyText : this.props.content
+            )}
+          </Card.Description>
         </Card.Content>
         <Card.Content
           extra
